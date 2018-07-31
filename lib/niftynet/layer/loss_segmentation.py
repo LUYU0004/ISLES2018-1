@@ -331,7 +331,7 @@ def dice(prediction, ground_truth, weight_map=None):
         indices=ids,
         values=tf.ones_like(ground_truth, dtype=tf.float32),
         dense_shape=tf.to_int64(tf.shape(prediction)))
-    print('one_hot :', one_hot, '& ground_truth :', ground_truth)
+
     if weight_map is not None:
         weight_tile = tf.tile(weight_map, [n_classes])
         weight_map_nclasses = tf.reshape(weight_tile, [tf.shape(weight_map)[0], 9])  #prediction.get_shape())
@@ -354,8 +354,8 @@ def dice(prediction, ground_truth, weight_map=None):
 
     dice_score = dice_numerator / (dice_denominator + epsilon_denominator)
     n_classes = tf.count_nonzero(dice_score, dtype=tf.float32)
-    return 1.0 - tf.reduce_sum(dice_score)/n_classes
-
+    dice_loss = 1.0 - tf.reduce_sum(dice_score)/n_classes
+    return dice_loss
 
 def l1_loss(prediction, ground_truth, weight_map=None):
     """

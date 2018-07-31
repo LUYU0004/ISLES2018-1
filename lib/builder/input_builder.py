@@ -80,10 +80,10 @@ class InputData:
             # Reshape Image and Label to make batches
             image = np.expand_dims(image, 4)
 
-            # label = np.zeros(list(label_raw.shape) + [self.num_class])
-            # for n in range(self.num_class):
-            #     label[:, :, :, n] = label_raw == n
-            label = label_raw
+            label = np.zeros(list(label_raw.shape) + [self.num_class])
+            for n in range(self.num_class):
+                label[:, :, :, n] = label_raw == n
+            # label = label_raw
 
             image = np.expand_dims(image, 0)
             label = np.expand_dims(label, 0)

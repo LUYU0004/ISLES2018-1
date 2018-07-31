@@ -7,7 +7,7 @@ import tensorflow as tf
 from model.unet3d import SegEngine3D
 from builder import input_builder
 from util.general_util import progress_bar
-from core import loss_segmentation
+from core.loss_segmentation import LossFunction
 
 
 def save_image_summary_3d(image, name='image'):
@@ -23,7 +23,6 @@ def save_image_summary_3d(image, name='image'):
                             name='sliced_%s' % name)
 
     # sliced_image = tf.expand_dims(sliced_image, axis=3)
-    print(sliced_image)
     tf.summary.image(name=name, tensor=tf.cast(sliced_image, tf.uint8), max_outputs=max_outputs)
 
 
@@ -37,7 +36,7 @@ learning_rate = 0.0001
 
 with tf.Graph().as_default(), tf.device('/cpu:0'):
     input_image = tf.placeholder(dtype=tf.float16, shape=[None, 256, 256, 4, 1], name='input_image')
-    groundtruth = tf.placeholder(dtype=tf.float16, shape=[None, 256, 256, 4], name='groundtruth')
+    groundtruth = tf.placeholder(dtype=tf.float16, shape=[None, 256, 256, 4, 2], name='groundtruth')
     is_training = tf.placeholder_with_default(tf.constant(True), None, name='is_training')
 
     params = {'batch_size': batch_size,
@@ -47,10 +46,11 @@ with tf.Graph().as_default(), tf.device('/cpu:0'):
     logit = SegEngine3D(params).inference(input_image)
     save_image_summary_3d(tf.argmax(input_image, 4), name='image')
     save_image_summary_3d(tf.argmax(logit, 4), name='logit')
-    save_image_summary_3d(groundtruth, name='groundtruth')
+    # save_image_summary_3d(tf.argmax(groundtruth, 4), name='groundtruth')
 
-    loss_fn = loss_segmentation.LossFunction(num_class)
+    loss_fn = LossFunction(n_class=num_class, loss_type='Dice')
     cost = loss_fn(prediction=logit, ground_truth=groundtruth)
+    print('cost', cost)
     train_op = tf.train.AdamOptimizer(learning_rate).minimize(cost)
 
     eval_set = {'cost': cost}

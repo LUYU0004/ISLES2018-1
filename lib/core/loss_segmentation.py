@@ -7,6 +7,7 @@ import tensorflow as tf
 from niftynet.layer.base_layer import Layer
 from niftynet.engine.application_factory import LossSegmentationFactory
 
+
 M_tree = np.array([[0., 1., 1., 1., 1.],
                    [1., 0., 0.6, 0.2, 0.5],
                    [1., 0.6, 0., 0.6, 0.7],
@@ -42,7 +43,6 @@ class LossFunction(Layer):
         if not isinstance(prediction, (list, tuple)):
             prediction = [prediction]
         # prediction should be a list for holistic networks
-        print("Prediction 1:", prediction)
         if self._num_classes > 0:
             # reshape the prediction to [n_voxels , num_classes]
             prediction = [tf.reshape(pred, [-1, self._num_classes])
@@ -55,7 +55,6 @@ class LossFunction(Layer):
         data_loss = []
         scores = []
 
-        print('prediction :', prediction)
         for pred in prediction:
             if self._loss_func_params:
                 loss, score = self._data_loss_func(
@@ -64,12 +63,11 @@ class LossFunction(Layer):
                 data_loss.append(loss)
                 scores.append(score)
             else:
-                loss, score = self._data_loss_func(
-                    pred, ground_truth, weight_map)
+                loss = self._data_loss_func(pred, ground_truth, weight_map)
                 data_loss.append(loss)
-                scores.append(score)
-        print('data_loss :', data_loss)
-        return tf.reduce_mean(data_loss), score
+                # scores.append(score)
+
+        return tf.reduce_mean(data_loss)
 
 
 def generalised_dice_loss(prediction,
@@ -335,7 +333,6 @@ def dice(prediction, ground_truth, weight_map=None):
     n_classes = prediction.get_shape()[1].value
     ids = tf.range(tf.to_int64(tf.shape(ground_truth)[0]), dtype=tf.int64)
     ids = tf.stack([ids, ground_truth], axis=1)
-    print('ids', ids)
     one_hot = tf.SparseTensor(
         indices=ids,
         values=tf.ones_like(ground_truth, dtype=tf.float32),
