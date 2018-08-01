@@ -27,11 +27,11 @@ class SegEngine3D:
             conv = tf.layers.conv3d(inputs=inputs, filters=filter_size,
                                     kernel_size=kernel_size, padding="same",
                                     activation=None, name="conv1")
-            group_norm = self.group_norm(conv, self.is_train, name='group_norm')
-            # batch_norm = self.batch_norm(conv, self.is_train)
+            # group_norm = self.group_norm(conv, self.is_train, name='group_norm')
+            batch_norm = self.batch_norm(conv, self.is_train)
 
             # act = pRelu(batch_norm)
-            act = tf.nn.relu(group_norm)
+            act = tf.nn.relu(batch_norm)
         return act
 
     def deconv(self, inputs, kernel_size=(2, 2, 2), filter_size=None, name="deconv_block"):
@@ -43,14 +43,14 @@ class SegEngine3D:
                                                 use_bias=False,
                                                 bias_initializer=tf.zeros_initializer())
             # deconv = tf.layers.dropout(deconv, self.dropout_rate, training=self.is_train, name="dropout")
-            group_norm = self.group_norm(deconv, self.is_train, name='group_norm')
-            # batch_norm = tf.layers.batch_normalization(inputs=deconv,
-            #                                            training=self.is_train,
-            #                                            momentum=0.9,
-            #                                            renorm_momentum=0.9)
+            # group_norm = self.group_norm(deconv, self.is_train, name='group_norm')
+            batch_norm = tf.layers.batch_normalization(inputs=deconv,
+                                                       training=self.is_train,
+                                                       momentum=0.9,
+                                                       renorm_momentum=0.9)
 
             # act = pRelu(batch_norm)
-            act = tf.nn.relu(group_norm)
+            act = tf.nn.relu(batch_norm)
         return act
 
     def residual_block(self, inputs, kernel_size=(3, 3, 3), filter_size=None, name="residual_block", pooling=True):
@@ -103,6 +103,4 @@ class SegEngine3D:
             up_ = self.residual_block(up, filter_size=filters[0], name="residual_block_4", pooling=False)
 
         logit = self.last_block(up_, name="last_block")
-        print("up_shape :", up_.shape)
-        print("logit_shape :", logit.shape)
         return logit
