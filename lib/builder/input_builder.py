@@ -3,6 +3,7 @@ import numpy as np
 
 from scipy.ndimage import zoom  # 0: NearestNeighbor, 1: LInear, 3: Bicubic
 from scipy.ndimage import label as seg_label
+from scipy.ndimage.interpolation import rotate
 
 import nibabel as nib
 
@@ -88,6 +89,18 @@ class InputData:
 
         return resized_image, resized_label
 
+    def random_rotate(self, image, label, rand_angle=10):
+        random_angle = np.random.randint(-rand_angle, rand_angle)
+        image = rotate(image, angle=random_angle, order=1, reshape=False)
+        label = rotate(label, angle=random_angle, order=0, reshape=False)
+        return image, label
+
+    def random_flip(self, image, label):
+        if np.random.randint(2):
+            return np.flip(image, 0), np.flip(label, 0)
+        else:
+            return image, label
+
     def generate_dataset(self, batch_num, is_training=True):
         if is_training:
             batch_set = self.train_set[batch_num * self.batch_size: (batch_num + 1) * self.batch_size]
@@ -112,6 +125,10 @@ class InputData:
             label = np.array(nib.load(label_path).get_data())
             # 여기부터 label이 3개가 된다.
             label = np.where(label == 1, 2, mtt)
+
+            if is_training:
+                image, label = self.random_flip(image, label)
+                image, label = self.random_rotate(image, label)
 
             image, label = self.resize_image(data, image, label)
 

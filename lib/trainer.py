@@ -4,7 +4,7 @@ import numpy as np
 import shutil
 import tensorflow as tf
 
-from model.unet3d import SegEngine3D
+from model.unet3d_dropout import SegEngine3D as train_model
 from builder import input_builder
 from util.general_util import progress_bar
 from core.loss_segmentation import LossFunction
@@ -30,13 +30,13 @@ def save_image_summary_3d(image, name='image'):
 
 
 num_class = 3
-num_epochs = 200
+num_epochs = 100
 batch_size = 4
 split_type = 'kfolds'
 
 learning_rate = 0.0001
 
-save_log = 'c://workspace/3. Contest/ISLES2018/log_0801/'
+save_log = 'c://workspace/3. Contest/ISLES2018/log_0802/'
 if os.path.exists(save_log):
     shutil.rmtree(save_log)
 
@@ -49,7 +49,7 @@ with tf.Graph().as_default():
               'num_classes': num_class,
               'mode': is_training}
 
-    logit = SegEngine3D(params).inference(input_image)
+    logit = train_model(params).inference(input_image)
 
     with tf.variable_scope("image"):
         save_image_summary_3d(tf.squeeze(input_image, 4), name='image')

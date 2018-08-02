@@ -30,8 +30,7 @@ class SegEngine3D:
             # group_norm = self.group_norm(conv, self.is_train, name='group_norm')
             batch_norm = self.batch_norm(conv, self.is_train)
 
-            # act = pRelu(batch_norm)
-            act = tf.nn.relu(batch_norm)
+            act = self.activation(batch_norm)
         return act
 
     def deconv(self, inputs, kernel_size=(2, 2, 2), filter_size=None, name="deconv_block"):
@@ -49,8 +48,7 @@ class SegEngine3D:
                                                        momentum=0.9,
                                                        renorm_momentum=0.9)
 
-            # act = pRelu(batch_norm)
-            act = tf.nn.relu(batch_norm)
+            act = self.activation(batch_norm)
         return act
 
     def residual_block(self, inputs, kernel_size=(3, 3, 3), filter_size=None, name="residual_block", pooling=True):
